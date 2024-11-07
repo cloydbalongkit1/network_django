@@ -1,19 +1,42 @@
 {% extends "network/layout.html" %}
 
 {% block body %}
-    <div class="m-3 p-3 border rounded compose-form">
-        <h5>New Post</h5>
-        <form action="#" method="post">
-            {% csrf_token %}
-            <div class="form-group">
-                <textarea class="form-control" name="compose" id="compose" placeholder="Write your post here!"></textarea>
-            </div>
-            <button type="submit" class="btn btn-primary mt-2">Submit</button>
-        </form>
+
+    {% if user.is_authenticated %}
+        <div class="p-3 mb-3 border rounded compose-form">
+            <h5>New Post</h5>
+            <form action="{% url 'post' %}" method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <textarea class="form-control" name="compose" id="compose" placeholder="Write your post here!"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary mt-2">Submit</button>
+            </form>
+        </div>
+    {% endif %}
+
+    <div class="p-3 border rounded bg-light">
+        <ul class="list-group">
+            {% for post in posts %}
+                <li class="list-group-item mb-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-1">{{ post.created_by }}</h5>
+                            <p class="mb-1">{{ post.new_post }}</p>
+                            <small class="text-muted">Date Created: {{ post.date_created }}</small>
+                        </div>
+                        <div>
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}" >
+                            <button class="btn btn-outline-danger like_button" data-post-id="{{ post.id }}">
+                                ❤️ <small>{{ post.likes }}</small>
+                            </button>
+                        </div>                         
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
     </div>
     
-    <div class="m-3 p-3 border rounded">
-        content
-    </div>
+    
 
 {% endblock %}
