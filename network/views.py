@@ -31,15 +31,20 @@ def post(request):
 @login_required
 def liked(request):
     if request.method == "POST":
-        data = json.loads(request.body)  # Parses the JSON body of the request
-        print(data)
-        post_id = data.get('post_id')
-        if post_id:
-            post = get_object_or_404(Post, id=post_id)  # Safely retrieves the Post object
-            post.likes += 1  # Increments the likes count
-            post.save()  # Saves the updated Post
-            return JsonResponse({'success': True, 'likes': post.likes})  # Returns a JSON response with success status and updated like count
-    return JsonResponse({'success': False})  # Returns a JSON response with failure status if something goes wrong
+        try:
+            data = json.loads(request.body)
+            post_id = data.get('post_id')
+            if post_id:
+                post = get_object_or_404(Post, id=post_id)
+                if post.created_by != request.user:
+                    post.likes += 1
+                    post.save()
+                    return JsonResponse({'success': True, 'likes': post.likes})
+                else:
+                    return JsonResponse({'success': False, 'message': 'You cannot like your own post.'})
+        except (json.JSONDecodeError, KeyError):
+            return JsonResponse({'success': False, 'message': 'Invalid data.'})
+    return JsonResponse({'success': False, 'message': 'Invalid request method.'})
 
 
 
