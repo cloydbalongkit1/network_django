@@ -1,8 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
-    
-    likeButton()
-
-})
+    likeButton();
+});
 
 
 function likeButton() {
@@ -10,7 +8,7 @@ function likeButton() {
         button.addEventListener('click', () => {
             const postId = button.getAttribute('data-post-id');
             const csrfToken = document.querySelector('input[name="csrf_token"]').value;
-    
+
             fetch("/liked", {
                 method: 'POST',
                 headers: {
@@ -21,17 +19,19 @@ function likeButton() {
             })
             .then(response => response.json())
             .then(data => {
-                const messageDiv = document.getElementById('#message')
+                const messageDiv = document.getElementById('message');
                 if (data.success) {
                     const likeCount = button.querySelector('small');
                     likeCount.textContent = parseInt(likeCount.textContent) + 1;
-                } else { 
+                } else {
                     messageDiv.innerHTML = `<div class="alert alert-danger" role="alert">${data.message}</div>`;
                 }
             })
-            .catch(error => console.error('Error:', error));
+            .catch(error => {
+                const messageDiv = document.getElementById('message');
+                messageDiv.innerHTML = `<div class="alert alert-danger" role="alert">An error occurred. Please try again.</div>`;
+                console.error('Error:', error);
+            });
         });
     });
 }
-
-

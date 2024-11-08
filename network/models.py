@@ -14,7 +14,7 @@ class Post(models.Model):
     likes = models.IntegerField(default=0)
 
     def __str__(self):
-        return f"{self.new_post[:50]} - {self.created_by}"
+        return f"{self.new_post[:10]}... - {self.created_by}"
 
 
 class Comment(models.Model):
@@ -25,3 +25,15 @@ class Comment(models.Model):
 
     def __str__(self):
         return f"{self.comment[:50]} - {self.commented_by}"
+
+
+
+class Like(models.Model):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='post_likes')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_likes')
+
+    class Meta:
+        unique_together = ('post', 'user')
+
+    def __str__(self):
+        return f"{self.user} likes {self.post}"

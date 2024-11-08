@@ -28,11 +28,7 @@
                         <div type="hidden">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token }}" >
                             <button class="btn btn-outline-danger like_button" data-post-id="{{ post.id }}" 
-                                    {% if user == post.created_by or not user.is_authenticated %}
-                                        disabled
-                                    {% endif %}
-                                >
-
+                                    {% if user == post.created_by or not user.is_authenticated %}disabled{% endif %}>
                                 ❤️ <small>{{ post.likes }}</small>
                             </button>
                         </div>                     
@@ -44,4 +40,6 @@
     
     
 {% endblock %}
+
+
 

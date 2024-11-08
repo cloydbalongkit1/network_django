@@ -1,13 +1,14 @@
 import json
+
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 
-from .models import User, Post, Comment
-from django.http import JsonResponse
+from .models import User, Post, Comment, Like
+
 
 
 
@@ -37,9 +38,13 @@ def liked(request):
             if post_id:
                 post = get_object_or_404(Post, id=post_id)
                 if post.created_by != request.user:
-                    post.likes += 1
-                    post.save()
-                    return JsonResponse({'success': True, 'likes': post.likes})
+                    already_liked = Like.objects.filter(post=post, user=request.user).exists()
+                    if already_liked:
+                        post.likes += 1
+                        post.save()
+                        return JsonResponse({'success': True, 'likes': post.likes})
+                    else:
+                        return JsonResponse({'success': False, 'message': 'You have already liked this post.'})
                 else:
                     return JsonResponse({'success': False, 'message': 'You cannot like your own post.'})
         except (json.JSONDecodeError, KeyError):
