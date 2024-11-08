@@ -11,13 +11,13 @@
     <body>
         <div class="container">
             <nav class="navbar navbar-expand-lg navbar-light">
-                <a class="navbar-brand" href="#">Network</a>
+                <a class="navbar-brand" href="{% url 'index' %}">Network</a>
               
                 <div>
                   <ul class="navbar-nav mr-auto">
                     {% if user.is_authenticated %}
                         <li class="nav-item">
-                            <a class="nav-link" href="#"><strong>{{ user.username }}</strong></a>
+                            <a class="nav-link" href="{% url 'user_profile' %}"><strong>{{ user.username }}</strong></a>
                         </li>
                     {% endif %}
                     <li class="nav-item">
@@ -43,11 +43,16 @@
             </nav>
         </div>
         <hr>
+
         <div id="message" class="container"></div>
+        
         <div class="body container">
             {% block body %}
             {% endblock %}
         </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.1.3/js/bootstrap.min.js"></script>
     </body>
 </html>
 

@@ -4,7 +4,16 @@ from django.db import models
 
 
 class User(AbstractUser):
-    pass
+    followers = models.IntegerField(default=0)
+    following = models.IntegerField(default=0)
+    bio = models.CharField(max_length=500, null=True, blank=True)
+    location = models.CharField(max_length=100, null=True, blank=True)
+    work = models.CharField(max_length=100, null=True, blank=True)
+
+    def __str__(self):
+        return self.username
+
+
 
 
 class Post(models.Model):

@@ -39,7 +39,6 @@ def liked(request):
                 post = get_object_or_404(Post, id=post_id)
                 if post.created_by != request.user:
                     already_liked = Like.objects.filter(post=post, user=request.user).exists()
-                    print(already_liked)
                     if not already_liked:
                         Like.objects.create(post=post, user=request.user)
                         post.likes += 1
@@ -53,6 +52,12 @@ def liked(request):
             return JsonResponse({'success': False, 'message': 'Invalid data.'})
     return JsonResponse({'success': False, 'message': 'Invalid request method.'})
 
+
+
+@login_required
+def profile(request):
+    user_profile = get_object_or_404(User, id=request.user.id)
+    return render(request, "network/profile.html", {'user': user_profile})
 
 
 def login_view(request):

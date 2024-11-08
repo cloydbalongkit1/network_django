@@ -2,4 +2,37 @@
     background-color: rgb(246, 255, 235);
 }
 
+.profile-header {
+    background-image: url('https://media.istockphoto.com/id/821760914/vector/pastel-multi-color-gradient-vector-background-simple-form-and-blend-with-copy-space.jpg?s=2048x2048&w=is&k=20&c=t5GvoPlf0t5weZvrd4xY9gTHv45-3BJSdiv2ZoSRLKU=');
+    background-size: cover;
+    background-position: center;
+    height: 200px;
+    position: relative;
+}
+
+.profile-picture {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    position: relative;
+    bottom: -75px;
+    left: 20px;
+    border: 5px solid white;
+}
+
+.follow-btn {
+    margin-top: 10px;
+}
+
+.profile-info {
+    padding-top: 50px;
+}
+
+.profile-details, .profile-stats {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 15px;
+    padding: 10px 0;
+}
 

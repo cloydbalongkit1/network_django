@@ -1,0 +1,51 @@
+{% extends "network/layout.html" %}
+{% load static %}
+
+{% block body %}
+
+    <div class="container">
+        <div class="profile-header">
+            <img src="{% static 'network/images/sample.jpg' %}" alt="Profile Picture" class="profile-picture">
+        </div>
+        <div class="profile-info p-3 bg-light">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h3>{{ user.first_name.title }} {{ user.last_name.title }}</h3>
+                    <p class="text-muted">@{{ user.username }}</p>
+                    <input type="hidden" name="csrf_profile_edit" value="{{ csrf_token }}" >
+                    <button class='btn btn-outline-secondary btn-sm follow-btn'>Edit Profile</button>
+                </div>
+                <input type="hidden" name="csrf_follow" value="{{ csrf_token }}" >
+                <button class="btn btn-primary follow-btn">Follow</button>
+            </div>
+            <hr>
+            <div class="profile-details">
+                <p><strong>Work:</strong> {{ user.work }}</p>
+                <p><strong>Location:</strong> {{ user.location }}</p>
+                <p><strong>Joined:</strong> {{ user.date_joined|date:"F Y" }}</p>
+            </div>
+            <div class="profile-stats">
+                <p><strong>{{ user.following }}</strong> Following</p>
+                <p><strong>{{ user.followers }}</strong> Followers</p>
+            </div>
+        </div>
+    </div>
+
+    <div>
+
+    </div>
+
+{% endblock %}
+
+
+
+
+
+    
+
+    
+
+
+
+
+
