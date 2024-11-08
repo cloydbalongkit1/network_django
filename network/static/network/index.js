@@ -1,6 +1,25 @@
 document.addEventListener('DOMContentLoaded', () => {
+    makePost()
     likeButton();
+
+    const postButton = document.getElementById('new_post')
+    postButton.addEventListener('click', () => {
+        const postForm = document.getElementById('post_form');
+        postForm.style.display = 'block';
+        postButton.style.display = 'none';
+    })
+
+    
 });
+
+
+
+function makePost() {
+    const message = document.getElementById("post_form")
+    const postButton = document.getElementById("new_post")
+    message.style.display = 'none'
+    postButton.style.display = 'block'
+}
 
 
 function likeButton() {

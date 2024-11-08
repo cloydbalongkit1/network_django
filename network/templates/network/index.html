@@ -3,15 +3,19 @@
 {% block body %}
 
     {% if user.is_authenticated %}
-        <div class="p-3 mb-3 border rounded compose-form">
+        <div class="p-3 mb-3 border rounded compose-form" id="post_form">
             <h5>New Post</h5>
             <form action="{% url 'post' %}" method="post">
                 {% csrf_token %}
                 <div class="form-group">
                     <textarea class="form-control" name="compose" id="compose" placeholder="Write your post here!"></textarea>
                 </div>
-                <button type="submit" class="btn btn-primary mt-2">Submit</button>
+                <button id="post_submit" type="submit" class="btn btn-primary mt-2">Submit</button>
             </form>
+        </div>
+
+        <div id="new_post">
+            <button class="btn btn-primary mt-2 mb-3">New Post</button>
         </div>
     {% endif %}
 

@@ -39,7 +39,9 @@ def liked(request):
                 post = get_object_or_404(Post, id=post_id)
                 if post.created_by != request.user:
                     already_liked = Like.objects.filter(post=post, user=request.user).exists()
-                    if already_liked:
+                    print(already_liked)
+                    if not already_liked:
+                        Like.objects.create(post=post, user=request.user)
                         post.likes += 1
                         post.save()
                         return JsonResponse({'success': True, 'likes': post.likes})
