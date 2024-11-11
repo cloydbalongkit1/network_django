@@ -57,11 +57,27 @@ def liked(request):
 
 @login_required
 def profile(request):
-    user_profile = get_object_or_404(User, id=request.user.id)
-    form = EditProfile()
-    if request.method == 'POST':
-        ...
+    id = request.user.id
+    user_profile = get_object_or_404(User, id=id)
+    form = EditProfile(instance=user_profile)
 
+    if request.method == 'POST':
+        form = EditProfile(request.POST, instance=user_profile)
+        if form.is_valid():
+            first_name = form.cleaned_data['first_name']
+            last_name = form.cleaned_data['last_name']
+            bio = form.cleaned_data['bio']
+            location = form.cleaned_data['location']
+            work = form.cleaned_data['work']
+            user_profile.first_name = first_name
+            user_profile.last_name = last_name 
+            user_profile.bio = bio 
+            user_profile.location = location 
+            user_profile.work = work
+            user_profile.save()
+
+            redirect('user_profile')
+    
     return render(request, "network/profile.html", {
         'user': user_profile, 
         'form': form

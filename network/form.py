@@ -1,28 +1,14 @@
 from django import forms
+from .models import User
 
-class EditProfile(forms.Form):
-    
-    first_name = forms.CharField(max_length=100, required=True, 
-                                 widget=forms.TextInput(attrs={
-                                     'class': 'form-control', 
-                                     }))
-    
-    last_name = forms.CharField(max_length=100, required=True, 
-                                widget=forms.TextInput(attrs={
-                                    'class': 'form-control',
-                                    }))
-    
-    bio = forms.CharField(max_length=250, required=True,
-                          widget=forms.TextInput(attrs={
-                              'class': 'form-control', 
-                              }))
-    
-    location = forms.CharField(max_length=100, required=True,
-                               widget=forms.TextInput(attrs={
-                                   'class': 'form-control', 
-                                   }))
-    
-    work = forms.CharField(max_length=100, required=True,
-                           widget=forms.TextInput(attrs={
-                               'class': 'form-control', 
-                               }))
+class EditProfile(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'bio', 'location', 'work']
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter your first name'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter your last name'}),
+            'bio': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Enter your bio'}),
+            'location': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter your location'}),
+            'work': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter your work'}),
+        }

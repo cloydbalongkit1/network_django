@@ -8,10 +8,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (window.location.pathname === '/profile'){
         profileInitialDisplay();
+        editButtonProfile();
+
     }
+
+    
 
 
 });
+
 
 
 // --------------- index ---------------
@@ -77,3 +82,11 @@ function profileInitialDisplay() {
     userProfile.style.display = 'block';
 }
 
+
+function editButtonProfile() {
+    const editButton = document.querySelector('.edit-profile-btn')
+    editButton.addEventListener('click', () => {
+        document.querySelector('.edit_profile').style.display = 'block';
+        document.querySelector('.user_profile').style.display = 'none';
+    })
+}

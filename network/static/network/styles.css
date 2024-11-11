@@ -21,18 +21,18 @@
 }
 
 .follow-btn {
-    margin-top: 10px;
+    margin-top: 5px;
 }
 
 .profile-info {
     padding-top: 50px;
 }
 
-.profile-details, .profile-stats {
+.profile-details, .profile-stats, .bio-details {
     display: flex;
     justify-content: flex-start;
     align-items: center;
     gap: 15px;
-    padding: 10px 0;
 }
+
 
