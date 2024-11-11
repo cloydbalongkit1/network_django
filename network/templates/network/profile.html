@@ -3,7 +3,7 @@
 
 {% block body %}
 
-    <div class="container">
+    <div class="user_profile container">
         <div class="profile-header">
             <img src="{% static 'network/images/sample.jpg' %}" alt="Profile Picture" class="profile-picture">
         </div>
@@ -31,8 +31,13 @@
         </div>
     </div>
 
-    <div>
-
+    <div class="edit_profile container">
+        <h3>Edit Profile</h3>
+        <form action="" method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
     </div>
 
 {% endblock %}

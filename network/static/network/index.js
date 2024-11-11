@@ -1,20 +1,22 @@
 document.addEventListener('DOMContentLoaded', () => {
-    makePost()
-    likeButton();
+    if (window.location.pathname === '/') {
+        makePostIndex();
+        likeButtonIndex();
+        newPostButtonIndex();
+    }
 
-    const postButton = document.getElementById('new_post')
-    postButton.addEventListener('click', () => {
-        const postForm = document.getElementById('post_form');
-        postForm.style.display = 'block';
-        postButton.style.display = 'none';
-    })
 
-    
+    if (window.location.pathname === '/profile'){
+        profileInitialDisplay();
+    }
+
+
 });
 
 
+// --------------- index ---------------
 
-function makePost() {
+function makePostIndex() {
     const message = document.getElementById("post_form")
     const postButton = document.getElementById("new_post")
     message.style.display = 'none'
@@ -22,7 +24,7 @@ function makePost() {
 }
 
 
-function likeButton() {
+function likeButtonIndex() {
     document.querySelectorAll('.like_button').forEach(button => {
         button.addEventListener('click', () => {
             const postId = button.getAttribute('data-post-id');
@@ -54,3 +56,24 @@ function likeButton() {
         });
     });
 }
+
+
+function newPostButtonIndex(){
+    const postButton = document.getElementById('new_post')
+    postButton.addEventListener('click', () => {
+        const postForm = document.getElementById('post_form');
+        postForm.style.display = 'block';
+        postButton.style.display = 'none';
+    })
+}
+
+
+// --------------- profile ---------------
+
+function profileInitialDisplay() {
+    const editProfile = document.querySelector('.edit_profile');
+    const userProfile = document.querySelector('.user_profile');
+    editProfile.style.display = 'none';
+    userProfile.style.display = 'block';
+}
+

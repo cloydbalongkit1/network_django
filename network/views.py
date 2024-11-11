@@ -8,6 +8,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 
 from .models import User, Post, Comment, Like
+from .form import EditProfile
 
 
 
@@ -57,7 +58,14 @@ def liked(request):
 @login_required
 def profile(request):
     user_profile = get_object_or_404(User, id=request.user.id)
-    return render(request, "network/profile.html", {'user': user_profile})
+    form = EditProfile()
+    if request.method == 'POST':
+        ...
+
+    return render(request, "network/profile.html", {
+        'user': user_profile, 
+        'form': form
+        })
 
 
 def login_view(request):
