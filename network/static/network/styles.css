@@ -35,4 +35,12 @@
     gap: 15px;
 }
 
+.pointer-cursor {
+    cursor: pointer;
+}
+
+.hover-color {
+    color: #0D6EFD;
+}
+
 

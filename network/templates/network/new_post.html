@@ -1,0 +1,22 @@
+{% block new_post %}
+
+    {% if user.is_authenticated %}
+        <div class="p-3 mb-3 border rounded compose-form" id="post_form">
+            <h5>New Post</h5>
+            <form action="{% url 'post' %}" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="source" value="{% if 'profile' in request.path %}profile{% else %}index{% endif %}">
+                <div class="form-group">
+                    <textarea required class="form-control" name="compose" id="compose" placeholder="Write your post here!"></textarea>
+                </div>
+                <button id="post_submit" type="submit" class="btn btn-primary mt-2">Submit</button>
+            </form>
+        </div>
+
+        <div class="new_post_div">
+            <button id="new_post" class="btn btn-primary mt-2 mb-3">New Post</button>
+        </div>
+    {% endif %}
+
+{% endblock %}
+

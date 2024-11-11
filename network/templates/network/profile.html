@@ -15,7 +15,10 @@
                     <button class='btn btn-outline-secondary btn-sm edit-profile-btn'>Edit Profile</button>
                 </div>
                 <input type="hidden" name="csrf_follow" value="{{ csrf_token }}" >
-                <button class="btn btn-primary follow-btn">Follow</button>
+                <button class="btn btn-primary follow-btn" data-user-id="{{ user.id }}"
+                    {% if user_profile == user or not user.is_authenticated %}disabled{% endif %}
+                    >Follow
+                </button>
             </div>
             <hr>
             <div class="bio-details">
@@ -31,28 +34,38 @@
                 <p><strong>{{ user.followers }}</strong> Followers</p>
             </div>
         </div>
+
+        {% block new_post %}{% include 'network/new_post.html' %}{% endblock %}
+
+        <div class="mt-3 p-3 border rounded bg-light user_posts">
+            <ul class="list-group">
+                {% for post in posts %}
+                    <li class="list-group-item mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="user_name mb-1" data-user-id="{{ post.created_by.id }}" >{{ post.created_by }}</h5>
+                                <p class="mb-1">{{ post.new_post }}</p>
+                                <small class="text-muted">Date Created: {{ post.date_created }}</small>
+                            </div>                   
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+
     </div>
 
     <div class="edit_profile container">
         <h3>Edit Profile</h3>
-        <form action="{% url 'user_profile' %}" method="post">
+        <form action="{% url 'user_profile' user.id %}" method="post">
             {% csrf_token %}
             {{ form.as_p }}
             <button type="submit" class="btn btn-primary">Submit</button>
         </form>
     </div>
 
+    
+
 {% endblock %}
-
-
-
-
-
-    
-
-    
-
-
-
 
 

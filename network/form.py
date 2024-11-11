@@ -8,7 +8,7 @@ class EditProfile(forms.ModelForm):
         widgets = {
             'first_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter your first name'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter your last name'}),
-            'bio': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Enter your bio'}),
+            'bio': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Enter your bio', 'rows': 3}),
             'location': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter your location'}),
             'work': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter your work'}),
         }

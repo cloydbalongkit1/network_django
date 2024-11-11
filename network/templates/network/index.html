@@ -2,22 +2,7 @@
 
 {% block body %}
 
-    {% if user.is_authenticated %}
-        <div class="p-3 mb-3 border rounded compose-form" id="post_form">
-            <h5>New Post</h5>
-            <form action="{% url 'post' %}" method="post">
-                {% csrf_token %}
-                <div class="form-group">
-                    <textarea class="form-control" name="compose" id="compose" placeholder="Write your post here!"></textarea>
-                </div>
-                <button id="post_submit" type="submit" class="btn btn-primary mt-2">Submit</button>
-            </form>
-        </div>
-
-        <div>
-            <button id="new_post" class="btn btn-primary mt-2 mb-3">New Post</button>
-        </div>
-    {% endif %}
+    {% block new_post %} {% include 'network/new_post.html' %} {% endblock %}
 
     <div class="p-3 border rounded bg-light">
         <ul class="list-group">
@@ -25,11 +10,11 @@
                 <li class="list-group-item mb-3">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h5 class="mb-1">{{ post.created_by }}</h5>
+                            <h5 class="user_name mb-1" data-user-id="{{ post.created_by.id }}" >{{ post.created_by }}</h5>
                             <p class="mb-1">{{ post.new_post }}</p>
                             <small class="text-muted">Date Created: {{ post.date_created }}</small>
                         </div>
-                        <div type="hidden">
+                        <div>
                             <input type="hidden" name="csrf_token" value="{{ csrf_token }}" >
                             <button class="btn btn-outline-danger like_button" data-post-id="{{ post.id }}" 
                                     {% if user == post.created_by or not user.is_authenticated %}disabled{% endif %}>

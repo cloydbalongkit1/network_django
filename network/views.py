@@ -7,15 +7,15 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 
-from .models import User, Post, Comment, Like
+from .models import User, Like, Post, Follow, Comment
 from .form import EditProfile
 
 
 
 
 def index(request):
-    user_posts = Post.objects.all()[::-1]
-    return render(request, "network/index.html", {"posts": user_posts})
+    all_posts = Post.objects.all()[::-1]
+    return render(request, "network/index.html", {"posts": all_posts})
 
 
 @login_required
@@ -25,7 +25,12 @@ def post(request):
         created_by = request.user
         user_post = Post(new_post=composed_post, created_by=created_by)
         user_post.save()
-        return redirect('index')
+
+        source = request.POST.get('source')
+        if source == 'profile':
+            return redirect('user_profile')
+        else:
+            return redirect('index')
     return redirect('index')
 
 
@@ -56,9 +61,44 @@ def liked(request):
 
 
 @login_required
-def profile(request):
-    id = request.user.id
+def follow(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            user_id = data.get('user_id')
+            if user_id:
+                user_to_follow = get_object_or_404(User, id=user_id)
+                if user_to_follow != request.user:  # Ensure the user is not trying to follow themselves
+                    # Check if the user is already following the specified user
+                    is_following = Follow.objects.filter(follower=request.user, following=user_to_follow).exists()
+                    if is_following:
+                        # Unfollow the user
+                        Follow.objects.filter(follower=request.user, following=user_to_follow).delete()
+                        user_to_follow.followers -= 1
+                        request.user.following -= 1
+                        user_to_follow.save()
+                        request.user.save()
+                        return JsonResponse({'success': True, 'message': 'Unfollowed successfully.', 'followers': user_to_follow.followers})
+                    else:
+                        # Follow the user
+                        Follow.objects.create(follower=request.user, following=user_to_follow)
+                        user_to_follow.followers += 1
+                        request.user.following += 1
+                        user_to_follow.save()
+                        request.user.save()
+                        return JsonResponse({'success': True, 'message': 'Followed successfully.', 'followers': user_to_follow.followers})
+                else:
+                    return JsonResponse({'success': False, 'message': 'You cannot follow yourself.'})
+        except (json.JSONDecodeError, KeyError):
+            return JsonResponse({'success': False, 'message': 'Invalid data.'})
+    return JsonResponse({'success': False, 'message': 'Invalid request method.'})
+
+
+
+@login_required
+def profile(request, id):
     user_profile = get_object_or_404(User, id=id)
+    user_posts = Post.objects.filter(created_by=request.user).order_by('-date_created')
     form = EditProfile(instance=user_profile)
 
     if request.method == 'POST':
@@ -76,12 +116,14 @@ def profile(request):
             user_profile.work = work
             user_profile.save()
 
-            redirect('user_profile')
+            redirect('user_profile', id=user_profile.id)
     
     return render(request, "network/profile.html", {
         'user': user_profile, 
-        'form': form
+        'form': form,
+        'posts': user_posts,
         })
+
 
 
 def login_view(request):
