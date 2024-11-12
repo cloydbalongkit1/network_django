@@ -157,36 +157,40 @@ def profile(request, id):
 
 @login_required
 def view_profile(request, id):
-    user_profile = get_object_or_404(User, id=id)
+    if request.method == 'POST':
+        # Extract data from the request body
+        # user_id = request.data.get('user_id')  # Get the user ID from the POST body
+        user_profile = get_object_or_404(User, id=id)
 
-    if request.method == 'POST':  # Handle profile editing if needed
-        form = EditProfile(request.POST, instance=user_profile)
-        if form.is_valid():
-            form.save()  # Save changes
-            return JsonResponse({'success': True, 'message': 'Profile updated successfully.'})
-    
-    # Fetch user posts (filtered for posts created by the user)
-    user_posts = Post.objects.filter(created_by=user_profile).order_by('-date_created')
+        # Fetch user posts
+        user_posts = Post.objects.filter(created_by=user_profile).order_by('-date_created')
 
-    # Construct the data to be sent back
-    profile_data = {
-        'id': user_profile.id,
-        'first_name': user_profile.first_name,
-        'last_name': user_profile.last_name,
-        'username': user_profile.username,
-        'bio': user_profile.bio,
-        'work': user_profile.work,
-        'location': user_profile.location,
-        'date_joined': user_profile.date_joined.strftime('%B %Y'),
-        'following': user_profile.following.count(),
-        'followers': user_profile.followers.count(),
-        'posts': [{'created_by': post.created_by.username, 
-                   'new_post': post.new_post, 
-                   'date_created': post.date_created.strftime('%Y-%m-%d %H:%M:%S')} 
-                  for post in user_posts]
-    }
-    
-    return JsonResponse({'success': True, 'profile': profile_data})
+        # Construct profile data
+        profile_data = {
+            'id': user_profile.id,
+            'first_name': user_profile.first_name,
+            'last_name': user_profile.last_name,
+            'username': user_profile.username,
+            'bio': user_profile.bio,
+            'work': user_profile.work,
+            'location': user_profile.location,
+            'date_joined': user_profile.date_joined.strftime('%B %Y'),
+            'following': user_profile.following,
+            'followers': user_profile.followers,
+            'posts': [{
+                'created_by': post.created_by.username,
+                'new_post': post.new_post,
+                'date_created': post.date_created.strftime('%Y-%m-%d %H:%M:%S'),
+                'created_by_id': post.created_by.id,
+                'id': post.id,
+                'likes': post.likes,
+            } for post in user_posts],
+        }
+
+        return JsonResponse({'success': True, 'profile': profile_data})
+
+    return JsonResponse({'success': False, 'message': 'Invalid request method.'})
+
 
 
 

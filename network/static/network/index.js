@@ -194,18 +194,10 @@ function followButton() {
 // Click user name functionality
 function clickUserName() {
     document.querySelectorAll('.user_name').forEach(userName => {
-        userName.addEventListener('mouseenter', () => { 
-            userName.classList.add('pointer-cursor');
-            userName.classList.add('hover-color');  
-        });
-
-        userName.addEventListener('mouseleave', () => { 
-            userName.classList.remove('pointer-cursor'); 
-            userName.classList.remove('hover-color');  
-        });
+        cursorGraphics(userName);
 
         userName.addEventListener('click', () => { 
-            const csrfTokenInput = document.querySelector('input[name="csrf_token"]').value;
+            const csrfTokenInput = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
             const createdID = userName.getAttribute('data-user-id');
             const postID = userName.getAttribute('data-post-id');
             const currentUserId = document.getElementById('current_user_id').value; // assuming this field exists
@@ -228,7 +220,10 @@ function clickUserName() {
                 if (data.success) {
                     newPostElement.innerHTML = 
                         `<div class="post-header"> 
-                            <h5>${data.post.created_by}</h5> 
+                            <input type="hidden" name="csrf_profile_view" value="${ csrfTokenInput }" >
+                            <h5 id="viewing-profile" data-user-id="${ data.post.created_by_id}" >
+                                ${data.post.created_by}
+                            </h5> 
                             <small class="text-muted">${new Date(data.post.date_created).toLocaleString()}</small> 
                         </div> 
                         <div class="post-body"> 
@@ -245,6 +240,8 @@ function clickUserName() {
                     document.querySelector('.body').appendChild(newPostElement);
                     
                     initializeLikeButtons(); // Initialize like buttons on newly created content
+                    viewProfile(); // clicking h5 and rendering profile
+
                 } else { 
                     const messageDiv = document.getElementById('message');
                     messageDiv.innerHTML = `<div class="alert alert-danger" role="alert">${data.message}</div>`; 
@@ -262,5 +259,54 @@ function clickUserName() {
 
 
 
+
+function cursorGraphics(element) {
+    element.addEventListener('mouseenter', () => { 
+        element.classList.add('pointer-cursor');
+        element.classList.add('hover-color');  
+    });
+
+    element.addEventListener('mouseleave', () => { 
+        element.classList.remove('pointer-cursor'); 
+        element.classList.remove('hover-color');  
+    });
+}
+
+
+
+// clicking the profile name and rendering the profile page using JS
+function viewProfile() {
+    const profileName = document.getElementById('viewing-profile');
+    cursorGraphics(profileName);
+
+    profileName.addEventListener("click", () => {
+        const userID = profileName.getAttribute('data-user-id');
+        const csrfTokenInput = document.querySelector('input[name="csrf_profile_view"]').value;
+
+        fetch(`/view/profile/${userID}/`, {
+            method: 'POST',  // Change method to POST
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfTokenInput,  // Ensure CSRF token is included
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const profileData = data.profile;
+
+                console.log(profileData); // -----------------------------------------for Tomorrow --------------------------------------
+                // -------------------------------- rendering profile page
+        
+            } else {
+                console.error('Failed to fetch profile data:', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            // Optionally, handle network or other errors
+        });
+    })
+}
 
 
