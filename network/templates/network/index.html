@@ -10,7 +10,11 @@
                 <li class="list-group-item mb-3">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h5 class="user_name mb-1" data-user-id="{{ post.created_by.id }}" >{{ post.created_by }}</h5>
+                            <h5 class="user_name mb-1" 
+                                data-user-id="{{ post.created_by.id }}" 
+                                data-post-id="{{ post.id }}" >
+                                {{ post.created_by }}
+                            </h5>
                             <p class="mb-1">{{ post.new_post }}</p>
                             <small class="text-muted">Date Created: {{ post.date_created }}</small>
                         </div>

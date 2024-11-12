@@ -44,11 +44,14 @@
         </div>
         <hr>
 
+        <input type="hidden" id="current_user_id" value="{{ user.id }}">
+
         <div id="message" class="container"></div>
         
         <div class="body container">
-            {% block body %}
-            {% endblock %}
+            <div class="body-container">
+                {% block body %}{% endblock %}
+            </div>
         </div>
 
         <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>

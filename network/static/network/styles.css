@@ -44,3 +44,33 @@
 }
 
 
+.post-container {
+    border: 1px solid #e1e8ed;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.post-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e1e8ed;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+}
+
+.post-header h5 {
+    margin: 0;
+}
+
+.post-body {
+    margin-bottom: 10px;
+}
+
+.post-footer {
+    display: flex;
+    justify-content: flex-end;
+}
