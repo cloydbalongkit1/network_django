@@ -13,7 +13,7 @@
                             <h5 class="user_name mb-1" 
                                 data-user-id="{{ post.created_by.id }}" 
                                 data-post-id="{{ post.id }}" >
-                                {{ post.created_by }}
+                                    {{ post.created_by|title }}
                             </h5>
                             <p class="mb-1">{{ post.new_post }}</p>
                             <small class="text-muted">Date Created: {{ post.date_created }}</small>
@@ -21,7 +21,7 @@
                         <div>
                             <input type="hidden" name="csrf_token" value="{{ csrf_token }}" >
                             <button class="btn btn-outline-danger like_button" data-post-id="{{ post.id }}" 
-                                    {% if user == post.created_by or not user.is_authenticated %}disabled{% endif %}>
+                                    {% if user == post.created_by or not user.is_authenticated %}hidden{% endif %}>
                                 ❤️ <small>{{ post.likes }}</small>
                             </button>
                         </div>                     

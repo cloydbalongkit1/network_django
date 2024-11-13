@@ -16,6 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+
+
 // --------------- common function ---------------
 function getProfileIdFromUrl() { 
     const path = window.location.pathname; 
@@ -27,6 +29,14 @@ function getProfileIdFromUrl() {
     } 
     return null;
 }
+
+
+
+function toTitleCase(str) {
+    return str.replace(/\b\w/g, char => char.toUpperCase());
+}
+
+
 
 function newPostButton() {
     if (window.location.pathname === '/') {
@@ -43,6 +53,8 @@ function newPostButton() {
     }
 }
 
+
+
 // --------------- index ---------------
 function makePostIndex() {
     const message = document.getElementById("post_form");
@@ -51,12 +63,16 @@ function makePostIndex() {
     postButton.style.display = 'block';
 }
 
+
+
 // Initialize static like buttons
 function initializeLikeButtons() {
     document.querySelectorAll('.like-button').forEach(button => {
         button.addEventListener('click', handleLikeClick);
     });
 }
+
+
 
 // Event delegation for dynamic like buttons
 function likeButtonIndex() {
@@ -112,6 +128,7 @@ function likeButtonIndex() {
 }
 
 
+
 // Unified function to handle like button clicks
 function handleLikeClick(event) {
     const button = event.currentTarget || event.target.closest('.like-button');
@@ -149,6 +166,7 @@ function handleLikeClick(event) {
 }
 
 
+
 // --------------- profile ---------------
 function profileInitialDisplay() {
     const editProfile = document.querySelector('.edit_profile');
@@ -159,6 +177,8 @@ function profileInitialDisplay() {
     userProfile.style.display = 'block';
 }
 
+
+
 function editButtonProfile() {
     const editButton = document.querySelector('.edit-profile-btn');
     editButton.addEventListener('click', () => {
@@ -168,28 +188,32 @@ function editButtonProfile() {
     });
 }
 
-// Follow button functionality
-function followButton() {
-    const followButton = document.querySelector('.follow-btn');
-    followButton.addEventListener('click', () => {
-        const csrfTokenInput = document.querySelector('input[name="csrf_follow"]').value;
-        const userId = followButton.getAttribute('data-user-id');
 
-        fetch("/follow", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfTokenInput,
-            },
-            body: JSON.stringify({ user_id: userId })
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log('Follow action completed:', data);
-        })
-        .catch(error => { console.error('Error:', error); });
-    });
-}
+
+// // Follow button functionality
+// function followButton() {
+//     const followButton = document.querySelector('.follow-btn');
+//     followButton.addEventListener('click', () => {
+//         const csrfTokenInput = document.querySelector('input[name="csrf_follow"]').value;
+//         const userId = followButton.getAttribute('data-user-id');
+
+//         fetch("/follow", {
+//             method: 'POST',
+//             headers: {
+//                 'Content-Type': 'application/json',
+//                 'X-CSRFToken': csrfTokenInput,
+//             },
+//             body: JSON.stringify({ user_id: userId })
+//         })
+//         .then(response => response.json())
+//         .then(data => {
+//             console.log('Follow action completed:', data);
+//         })
+//         .catch(error => { console.error('Error:', error); });
+//     });
+// }
+
+
 
 // Click user name functionality
 function clickUserName() {
@@ -202,7 +226,7 @@ function clickUserName() {
             const postID = userName.getAttribute('data-post-id');
             const currentUserId = document.getElementById('current_user_id').value; // assuming this field exists
 
-            fetch(`view/post/${postID}/`, { 
+            fetch(`/view/post/${postID}/`, { 
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -215,14 +239,14 @@ function clickUserName() {
             .then(response => response.json())
             .then(data => { 
                 const newPostElement = document.createElement('div');
-                newPostElement.className = 'p-3 border rounded bg-light';
+                newPostElement.className = 'p-3 border rounded bg-light each-post';
 
                 if (data.success) {
                     newPostElement.innerHTML = 
                         `<div class="post-header"> 
                             <input type="hidden" name="csrf_profile_view" value="${ csrfTokenInput }" >
                             <h5 id="viewing-profile" data-user-id="${ data.post.created_by_id}" >
-                                ${data.post.created_by}
+                                ${toTitleCase(data.post.created_by)}
                             </h5> 
                             <small class="text-muted">${new Date(data.post.date_created).toLocaleString()}</small> 
                         </div> 
@@ -231,7 +255,7 @@ function clickUserName() {
                         </div> 
                         <div class="post-footer"> 
                             <button class="btn btn-outline-danger like-button" data-post-id="${data.post.id}"
-                                ${data.post.created_by_id == currentUserId ? 'disabled' : ''}> 
+                                ${data.post.created_by_id == currentUserId ? 'hidden' : ''}> 
                                 ❤️ <small>${data.post.likes}</small> 
                             </button> 
                         </div>`;
@@ -255,8 +279,6 @@ function clickUserName() {
         });
     });
 }
-
-
 
 
 
@@ -292,21 +314,111 @@ function viewProfile() {
         })
         .then(response => response.json())
         .then(data => {
-            if (data.success) {
-                const profileData = data.profile;
 
-                console.log(profileData); // -----------------------------------------for Tomorrow --------------------------------------
-                // -------------------------------- rendering profile page
-        
+            if (data.success) {
+                const viewedUser = data.profile;
+                
+                // Render profile page dynamically
+                const viewProfile = document.createElement('div');
+                viewProfile.innerHTML = `
+                    <div class="user_profile container">
+                        <div class="profile-header">
+                            <img src="${viewedUser.profile_picture_url || '/static/network/images/sample.jpg'}" alt="Profile Picture" class="profile-picture">
+                        </div>
+                        <div class="profile-info p-3 bg-light">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h3>${toTitleCase(viewedUser.first_name)} ${toTitleCase(viewedUser.last_name)}</h3>
+                                    <p class="text-muted">@${viewedUser.username}</p>
+                                </div>
+                                <input type="hidden" name="csrf_follow" value="{{ csrf_token }}">
+                                <button class="btn btn-primary follow-btn" 
+                                    data-viewedUser-id="${viewedUser.id}"
+                                    data-loggedUser-id="${data.logged_in_user_id}" 
+                                    ${data.logged_in_user_id === viewedUser.id ? 'hidden' : ''}>
+                                        Follow
+                                </button>
+                            </div>
+                            <hr>
+                            <div class="bio-details">
+                                <p><strong>Bio:</strong> ${viewedUser.bio || 'No bio provided'}</p>
+                            </div>
+                            <div class="profile-details">
+                                <p><strong>Work:</strong> ${viewedUser.work || 'Not specified'}</p>
+                                <p><strong>Location:</strong> ${viewedUser.location || 'Not specified'}</p>
+                                <p><strong>Joined:</strong> ${new Date(viewedUser.date_joined).toLocaleString('default', { month: 'long', year: 'numeric' })}</p>
+                            </div>
+                            <div class="profile-stats">
+                                <p><strong>${viewedUser.following}</strong> Following</p>
+                                <p><strong>${viewedUser.followers}</strong> Followers</p>
+                            </div>
+                        </div>
+                        <div class="mt-3 p-3 border rounded bg-light user_posts">
+                            <ul class="list-group">
+                                ${viewedUser.posts.map(post => `
+                                    <li class="list-group-item mb-3">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h5 class="user_name mb-1" data-user-id="${post.created_by.id}" data-login-user="${viewedUser.id}">
+                                                    ${toTitleCase(post.created_by)}
+                                                </h5>
+                                                <p class="mb-1">${post.new_post}</p>
+                                                <small class="text-muted">Date Created: ${new Date(post.date_created).toLocaleString()}</small>
+                                            </div>                   
+                                        </div>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                    </div>`;
+
+                // Append the created profile view to the body
+                document.querySelector('.each-post').style.display = 'none';
+                document.querySelector('.body').appendChild(viewProfile);
+                followButton("follow-btn");
+
             } else {
                 console.error('Failed to fetch profile data:', data.message);
             }
+
         })
         .catch(error => {
             console.error('Error:', error);
-            // Optionally, handle network or other errors
         });
     })
+}
+
+
+
+function followButton(className) {
+    const csrfTokenInput = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    const button = document.querySelector(`.${className}`)
+
+    if (button) {
+        button.addEventListener('click', () => {
+            const viewedUser = button.getAttribute('data-viewedUser-id');
+            const loggedUser = button.getAttribute('data-loggedUser-id');
+    
+            console.log('You clicked the follow btn!', viewedUser, loggedUser);
+
+            fetch("/follow", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfTokenInput,
+                },
+                body: JSON.stringify({ 
+                    viewed_user: viewedUser, 
+                    logged_user: loggedUser 
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Follow action completed:', data);
+            })
+            .catch(error => { console.error('Error:', error); });
+        })
+    }
 }
 
 

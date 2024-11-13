@@ -94,33 +94,37 @@ def follow(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            user_id = data.get('user_id')
-            if user_id:
-                user_to_follow = get_object_or_404(User, id=user_id)
-                if user_to_follow != request.user:  # Ensure the user is not trying to follow themselves
-                    # Check if the user is already following the specified user
-                    is_following = Follow.objects.filter(follower=request.user, following=user_to_follow).exists()
-                    if is_following:
-                        # Unfollow the user
-                        Follow.objects.filter(follower=request.user, following=user_to_follow).delete()
-                        user_to_follow.followers -= 1
-                        request.user.following -= 1
-                        user_to_follow.save()
-                        request.user.save()
-                        return JsonResponse({'success': True, 'message': 'Unfollowed successfully.', 'followers': user_to_follow.followers})
-                    else:
-                        # Follow the user
-                        Follow.objects.create(follower=request.user, following=user_to_follow)
-                        user_to_follow.followers += 1
-                        request.user.following += 1
-                        user_to_follow.save()
-                        request.user.save()
-                        return JsonResponse({'success': True, 'message': 'Followed successfully.', 'followers': user_to_follow.followers})
-                else:
-                    return JsonResponse({'success': False, 'message': 'You cannot follow yourself.'})
-        except (json.JSONDecodeError, KeyError):
+            viewed_user_id = data.get('viewed_user')
+            logged_user = request.user
+
+            viewed_user = get_object_or_404(User, id=viewed_user_id)
+
+            # Check if logged_user is already following viewed_user
+            if viewed_user in logged_user.following.all():
+                # If already following, unfollow
+                logged_user.following.remove(viewed_user)
+                following = False
+            else:
+                # If not following, follow
+                logged_user.following.add(viewed_user)
+                following = True
+
+            response_data = {
+                "success": True,
+                "following": following,
+                "following_count": logged_user.following_count,
+                "followers_count": viewed_user.followers_count,
+            }
+            return JsonResponse(response_data)
+
+        except (ValueError, KeyError) as error:
+            return JsonResponse({'success': False, 'message': str(error)}, status=400)
+        
+        except (json.JSONDecodeError):
             return JsonResponse({'success': False, 'message': 'Invalid data.'})
-    return JsonResponse({'success': False, 'message': 'Invalid request method.'})
+
+    return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=400)
+
 
 
 
@@ -146,7 +150,6 @@ def profile(request, id):
             user_profile.save()
 
             redirect('user_profile', id=user_profile.id)
-    
     return render(request, "network/profile.html", {
         'user': user_profile, 
         'form': form,
@@ -158,39 +161,30 @@ def profile(request, id):
 @login_required
 def view_profile(request, id):
     if request.method == 'POST':
-        # Extract data from the request body
-        # user_id = request.data.get('user_id')  # Get the user ID from the POST body
-        user_profile = get_object_or_404(User, id=id)
-
-        # Fetch user posts
-        user_posts = Post.objects.filter(created_by=user_profile).order_by('-date_created')
-
-        # Construct profile data
+        viewed_profile = get_object_or_404(User, id=id)
+        viewed_profile_posts = Post.objects.filter(created_by=viewed_profile).order_by('-date_created')
         profile_data = {
-            'id': user_profile.id,
-            'first_name': user_profile.first_name,
-            'last_name': user_profile.last_name,
-            'username': user_profile.username,
-            'bio': user_profile.bio,
-            'work': user_profile.work,
-            'location': user_profile.location,
-            'date_joined': user_profile.date_joined.strftime('%B %Y'),
-            'following': user_profile.following,
-            'followers': user_profile.followers,
-            'posts': [{
-                'created_by': post.created_by.username,
-                'new_post': post.new_post,
-                'date_created': post.date_created.strftime('%Y-%m-%d %H:%M:%S'),
-                'created_by_id': post.created_by.id,
-                'id': post.id,
-                'likes': post.likes,
-            } for post in user_posts],
+           'id': viewed_profile.id,
+           'first_name': viewed_profile.first_name,
+           'last_name': viewed_profile.last_name,
+           'username': viewed_profile.username,
+           'bio': viewed_profile.bio,
+           'work': viewed_profile.work,
+           'location': viewed_profile.location,
+           'date_joined': viewed_profile.date_joined.strftime('%B %Y'),
+           'following': len([user.username for user in viewed_profile.following.all()]),  # Serialize following
+           'followers': len([user.username for user in viewed_profile.followers.all()]),  # Serialize followers
+           'posts': [{
+               'created_by': viewed_post.created_by.username,
+               'new_post': viewed_post.new_post,
+               'date_created': viewed_post.date_created.strftime('%Y-%m-%d %H:%M:%S'),
+               'created_by_id': viewed_post.created_by.id,
+               'id': viewed_post.id,
+               'likes': viewed_post.likes,
+                } for viewed_post in viewed_profile_posts],
         }
-
-        return JsonResponse({'success': True, 'profile': profile_data})
-
+        return JsonResponse({'success': True, 'profile': profile_data, 'logged_in_user_id': request.user.id})
     return JsonResponse({'success': False, 'message': 'Invalid request method.'})
-
 
 
 
