@@ -1,4 +1,5 @@
 import json
+import random
 
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -7,15 +8,24 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 
-from .models import User, Like, Post, Follow, Comment
+from .models import User, Like, Post, Comment
 from .form import EditProfile
-
 
 
 
 def index(request):
     all_posts = Post.objects.all()[::-1]
+    random_posts = random.sample(list(all_posts), 5) if len(all_posts) >= 5 else all_posts
+
+    return render(request, "network/index.html", {"posts": random_posts})
+
+
+@login_required
+def all_posts(request):
+    all_posts = Post.objects.all()[::-1]
+
     return render(request, "network/index.html", {"posts": all_posts})
+
 
 
 @login_required
@@ -28,10 +38,11 @@ def post(request):
 
         source = request.POST.get('source')
         if source == 'profile':
-            return redirect('user_profile')
+            return redirect('user_profile', id=request.user.id)
         else:
             return redirect('index')
     return redirect('index')
+
 
 
 # use javascript ---- OK
@@ -58,9 +69,6 @@ def view_post(request, id):
             return JsonResponse({'success': False, 'message': 'Invalid data or post not found.'})
 
     return JsonResponse({'success': False, 'message': 'Invalid request method.'})
-
-
-
 
 
 
@@ -134,26 +142,21 @@ def profile(request, id):
     user_posts = Post.objects.filter(created_by=request.user).order_by('-date_created')
     form = EditProfile(instance=user_profile)
 
+    followers = user_profile.followers.all()  
+    following = user_profile.following.all()
+
     if request.method == 'POST':
         form = EditProfile(request.POST, instance=user_profile)
         if form.is_valid():
-            first_name = form.cleaned_data['first_name']
-            last_name = form.cleaned_data['last_name']
-            bio = form.cleaned_data['bio']
-            location = form.cleaned_data['location']
-            work = form.cleaned_data['work']
-            user_profile.first_name = first_name
-            user_profile.last_name = last_name 
-            user_profile.bio = bio 
-            user_profile.location = location 
-            user_profile.work = work
-            user_profile.save()
-
+            form.save()
             redirect('user_profile', id=user_profile.id)
+        
     return render(request, "network/profile.html", {
         'user': user_profile, 
         'form': form,
         'posts': user_posts,
+        'followers': followers,
+        'following': following,
         })
 
 
@@ -163,6 +166,7 @@ def view_profile(request, id):
     if request.method == 'POST':
         viewed_profile = get_object_or_404(User, id=id)
         viewed_profile_posts = Post.objects.filter(created_by=viewed_profile).order_by('-date_created')
+        is_following = request.user in viewed_profile.followers.all()
         profile_data = {
            'id': viewed_profile.id,
            'first_name': viewed_profile.first_name,
@@ -174,6 +178,7 @@ def view_profile(request, id):
            'date_joined': viewed_profile.date_joined.strftime('%B %Y'),
            'following': len([user.username for user in viewed_profile.following.all()]),  # Serialize following
            'followers': len([user.username for user in viewed_profile.followers.all()]),  # Serialize followers
+           'is_following': is_following, 
            'posts': [{
                'created_by': viewed_post.created_by.username,
                'new_post': viewed_post.new_post,
@@ -185,6 +190,16 @@ def view_profile(request, id):
         }
         return JsonResponse({'success': True, 'profile': profile_data, 'logged_in_user_id': request.user.id})
     return JsonResponse({'success': False, 'message': 'Invalid request method.'})
+
+
+
+@login_required
+def following(request):
+    user = get_object_or_404(User, id=request.user.id)
+    following_users = user.following.all()
+    all_posts = Post.objects.filter(created_by__in=following_users).order_by('-date_created')
+
+    return render(request, "network/index.html", {"posts": all_posts, "link": 'following'})
 
 
 

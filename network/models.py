@@ -22,7 +22,6 @@ class User(AbstractUser):
 
 
 
-
 class Post(models.Model):
     new_post = models.TextField()
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_posts')
@@ -31,6 +30,7 @@ class Post(models.Model):
 
     def __str__(self):
         return f"{self.new_post[:10]}... - {self.created_by}"
+
 
 
 class Comment(models.Model):
@@ -55,14 +55,4 @@ class Like(models.Model):
         return f"{self.user} likes {self.post}"
     
 
-
-class Follow(models.Model):
-    follower = models.ForeignKey(User, related_name='following_set', on_delete=models.CASCADE)
-    following = models.ForeignKey(User, related_name='followers_set', on_delete=models.CASCADE)
-    
-    class Meta:
-        unique_together = ('follower', 'following')
-
-    def __str__(self):
-        return f"{self.follower.username} follows {self.following.username}"
 

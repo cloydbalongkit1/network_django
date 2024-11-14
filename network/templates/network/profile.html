@@ -25,8 +25,8 @@
                 <p><strong>Joined:</strong> {{ user.date_joined|date:"F Y" }}</p>
             </div>
             <div class="profile-stats">
-                <p><strong>{{ user.following.count }}</strong> Following</p>
-                <p><strong>{{ user.followers.count }}</strong> Followers</p>
+                <p><strong>{{ following.count }}</strong> Following</p>
+                <p><strong>{{ followers.count }}</strong> Followers</p>
             </div>
         </div>
 
@@ -41,7 +41,7 @@
                                 <h5 class="mb-1" 
                                     data-user-id="{{ post.created_by.id }}" 
                                     data-login-user ="{{ user.id }}" 
-                                >{{ post.created_by }}</h5>
+                                >{{ post.created_by|title }}</h5>
                                 
                                 <p class="mb-1">{{ post.new_post }}</p>
                                 <small class="text-muted">Date Created: {{ post.date_created }}</small>

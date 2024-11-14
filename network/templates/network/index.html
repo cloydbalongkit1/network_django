@@ -2,8 +2,10 @@
 
 {% block body %}
 
-    {% block new_post %} {% include 'network/new_post.html' %} {% endblock %}
-
+    {% if link != 'following' %}
+        {% block new_post %} {% include 'network/new_post.html' %} {% endblock %}
+    {% endif %}
+    
     <div class="p-3 border rounded bg-light">
         <ul class="list-group">
             {% for post in posts %}

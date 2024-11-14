@@ -1,12 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
     newPostButton();
-    clickUserName();
+    clickPost();
+    likeButtonIndex();
+    makePostIndex();
+    initializeLikeButtons();
 
-    if (window.location.pathname === '/') {
-        makePostIndex();
-        initializeLikeButtons(); // Initialize like buttons on static content
-        likeButtonIndex(); // Set up event delegation for dynamic content
-    }
+    // if (window.location.pathname === '/') {
+    //      // Initialize like buttons on static content
+    //      // Set up event delegation for dynamic content
+    // }
 
     const profileId = getProfileIdFromUrl();
     if (profileId) {
@@ -190,33 +192,8 @@ function editButtonProfile() {
 
 
 
-// // Follow button functionality
-// function followButton() {
-//     const followButton = document.querySelector('.follow-btn');
-//     followButton.addEventListener('click', () => {
-//         const csrfTokenInput = document.querySelector('input[name="csrf_follow"]').value;
-//         const userId = followButton.getAttribute('data-user-id');
-
-//         fetch("/follow", {
-//             method: 'POST',
-//             headers: {
-//                 'Content-Type': 'application/json',
-//                 'X-CSRFToken': csrfTokenInput,
-//             },
-//             body: JSON.stringify({ user_id: userId })
-//         })
-//         .then(response => response.json())
-//         .then(data => {
-//             console.log('Follow action completed:', data);
-//         })
-//         .catch(error => { console.error('Error:', error); });
-//     });
-// }
-
-
-
 // Click user name functionality
-function clickUserName() {
+function clickPost() {
     document.querySelectorAll('.user_name').forEach(userName => {
         cursorGraphics(userName);
 
@@ -336,7 +313,7 @@ function viewProfile() {
                                     data-viewedUser-id="${viewedUser.id}"
                                     data-loggedUser-id="${data.logged_in_user_id}" 
                                     ${data.logged_in_user_id === viewedUser.id ? 'hidden' : ''}>
-                                        Follow
+                                        ${viewedUser.is_following ? 'Unfollow' : 'Follow'}
                                 </button>
                             </div>
                             <hr>
@@ -349,8 +326,8 @@ function viewProfile() {
                                 <p><strong>Joined:</strong> ${new Date(viewedUser.date_joined).toLocaleString('default', { month: 'long', year: 'numeric' })}</p>
                             </div>
                             <div class="profile-stats">
-                                <p><strong>${viewedUser.following}</strong> Following</p>
-                                <p><strong>${viewedUser.followers}</strong> Followers</p>
+                                <p><strong class="following-count">${viewedUser.following}</strong> Following</p>
+                                <p><strong class="followers-count" >${viewedUser.followers}</strong> Followers</p>
                             </div>
                         </div>
                         <div class="mt-3 p-3 border rounded bg-light user_posts">
@@ -401,6 +378,8 @@ function followButton(className) {
     
             console.log('You clicked the follow btn!', viewedUser, loggedUser);
 
+            const action = button.innerText === "Follow" ? "follow" : "unfollow";
+
             fetch("/follow", {
                 method: 'POST',
                 headers: {
@@ -409,12 +388,20 @@ function followButton(className) {
                 },
                 body: JSON.stringify({ 
                     viewed_user: viewedUser, 
-                    logged_user: loggedUser 
+                    logged_user: loggedUser,
+                    action: action,
                 })
             })
             .then(response => response.json())
             .then(data => {
-                console.log('Follow action completed:', data);
+
+                if (data.success) {
+                    button.innerText = action === "follow" ? "Unfollow" : "Follow";
+                    const followersCountElem = document.querySelector('.followers-count');
+                    let followersCount = parseInt(followersCountElem.innerText);
+                    followersCountElem.innerText = action === "follow" ? followersCount + 1 : followersCount - 1;
+                }
+
             })
             .catch(error => { console.error('Error:', error); });
         })
