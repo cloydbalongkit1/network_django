@@ -2,13 +2,11 @@
 
 {% block body %}
 
-    {% if link != 'following' %}
-        {% block new_post %} {% include 'network/new_post.html' %} {% endblock %}
-    {% endif %}
-    
+    {% block new_post %} {% include 'network/new_post.html' %} {% endblock %}
+
     <div class="p-3 border rounded bg-light">
         <ul class="list-group">
-            {% for post in posts %}
+            {% for post in page_obj %}
                 <li class="list-group-item mb-3">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
@@ -26,15 +24,50 @@
                                     {% if user == post.created_by or not user.is_authenticated %}hidden{% endif %}>
                                 ❤️ <small>{{ post.likes }}</small>
                             </button>
+                            {% if user == post.created_by %}
+                                <button class="btn btn-outline-primary edit_post"  
+                                        data-edit-id="{{ post.id }}"
+                                        data-edit-new_post="{{ post.new_post }}"
+                                        >
+                                    Edit Post
+                                </button>
+                            {% endif %}
                         </div>                     
                     </div>
                 </li>
             {% endfor %}
         </ul>
+
+        <nav aria-label="Page navigation example">
+            <ul class="pagination justify-content-center mt-3">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link">Previous</a>
+                    </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link">Next</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+
     </div>
-    
-    
+
 {% endblock %}
-
-
-

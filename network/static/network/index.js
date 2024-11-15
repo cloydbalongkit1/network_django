@@ -1,14 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
+    
     newPostButton();
     clickPost();
     likeButtonIndex();
     makePostIndex();
     initializeLikeButtons();
-
-    // if (window.location.pathname === '/') {
-    //      // Initialize like buttons on static content
-    //      // Set up event delegation for dynamic content
-    // }
+    editPost() 
 
     const profileId = getProfileIdFromUrl();
     if (profileId) {
@@ -17,6 +14,17 @@ document.addEventListener('DOMContentLoaded', () => {
         followButton(); 
     }
 });
+
+
+function editPost() {
+    document.querySelectorAll('.edit_post').forEach(editButton => {
+        editButton.addEventListener('click', () => {
+            console.log('edit clicked!');
+            // --------------------------------------> fetch -- request a post request to edit post from backend
+        })
+    })
+    
+}
 
 
 
@@ -273,8 +281,8 @@ function cursorGraphics(element) {
 
 
 
-// clicking the profile name and rendering the profile page using JS
-function viewProfile() {
+// clicking the profile name and rendering the profile page using JS -------------------------------------------------------------------
+function viewProfile(page=1) {
     const profileName = document.getElementById('viewing-profile');
     cursorGraphics(profileName);
 
@@ -347,6 +355,32 @@ function viewProfile() {
                                 `).join('')}
                             </ul>
                         </div>
+
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination justify-content-center mt-3">
+                                ${data.profile.has_previous ? `
+                                    <li class="page-item">
+                                        <a class="page-link" href="#" onclick="viewProfile(${data.profile.page_number - 1})">Previous</a>
+                                    </li>
+                                ` : `
+                                    <li class="page-item disabled"><a class="page-link">Previous</a></li>
+                                `}
+                                ${Array.from({ length: data.profile.total_pages }, (_, i) => `
+                                    <li class="page-item ${data.profile.page_number === i + 1 ? 'active' : ''}">
+                                        <a class="page-link" href="#" onclick="viewProfile(${i + 1})">${i + 1}</a>
+                                    </li>
+                                `).join('')}
+                                ${data.profile.has_next ? `
+                                    <li class="page-item">
+                                        <a class="page-link" href="#" onclick="viewProfile(${data.profile.page_number + 1})">Next</a>
+                                    </li>
+                                ` : `
+                                    <li class="page-item disabled"><a class="page-link">Next</a></li>
+                                `}
+                            </ul>
+                        </nav>
+
+                
                     </div>`;
 
                 // Append the created profile view to the body
@@ -374,10 +408,7 @@ function followButton(className) {
     if (button) {
         button.addEventListener('click', () => {
             const viewedUser = button.getAttribute('data-viewedUser-id');
-            const loggedUser = button.getAttribute('data-loggedUser-id');
-    
-            console.log('You clicked the follow btn!', viewedUser, loggedUser);
-
+            // const loggedUser = button.getAttribute('data-loggedUser-id');
             const action = button.innerText === "Follow" ? "follow" : "unfollow";
 
             fetch("/follow", {
@@ -388,7 +419,7 @@ function followButton(className) {
                 },
                 body: JSON.stringify({ 
                     viewed_user: viewedUser, 
-                    logged_user: loggedUser,
+                    // logged_user: loggedUser,
                     action: action,
                 })
             })
@@ -407,5 +438,8 @@ function followButton(className) {
         })
     }
 }
+
+
+
 
 

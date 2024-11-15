@@ -22,7 +22,10 @@
                         </li>
                     {% endif %}
                     <li class="nav-item">
-                      <a class="nav-link" href="{% if user.is_authenticated %} {% url 'all_posts' %} {% else %} {% url 'index' %} {% endif %}">All Posts</a>
+                      <a class="nav-link" 
+                         href="{% if user.is_authenticated %} {% url 'all_posts' %} {% else %} {% url 'index' %} {% endif %}"
+                        >All Posts
+                      </a>
                     </li>
                     {% if user.is_authenticated %}
                         <li class="nav-item">

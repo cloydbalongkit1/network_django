@@ -7,6 +7,7 @@ from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
+from django.core.paginator import Paginator
 
 from .models import User, Like, Post, Comment
 from .form import EditProfile
@@ -15,17 +16,34 @@ from .form import EditProfile
 
 def index(request):
     all_posts = Post.objects.all()[::-1]
-    random_posts = random.sample(list(all_posts), 5) if len(all_posts) >= 5 else all_posts
 
-    return render(request, "network/index.html", {"posts": random_posts})
+    if request.user.is_authenticated:
+        selected_posts = all_posts[:10]
+    else:
+        selected_posts = random.sample(list(all_posts), 8) if len(all_posts) >= 8 else all_posts
+        
+        
+    paginator = Paginator(selected_posts, 4)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, "network/index.html", {"page_obj": page_obj})
 
 
 @login_required
 def all_posts(request):
     all_posts = Post.objects.all()[::-1]
 
-    return render(request, "network/index.html", {"posts": all_posts})
+    paginator = Paginator(all_posts, 10)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
 
+    return render(request, "network/index.html", {"page_obj": page_obj})
+
+
+@login_required
+def edit_post(request, id):
+    ...
 
 
 @login_required
@@ -105,15 +123,15 @@ def follow(request):
             viewed_user_id = data.get('viewed_user')
             logged_user = request.user
 
+            print(logged_user)
+            print(logged_user.following.all())
+
             viewed_user = get_object_or_404(User, id=viewed_user_id)
 
-            # Check if logged_user is already following viewed_user
             if viewed_user in logged_user.following.all():
-                # If already following, unfollow
                 logged_user.following.remove(viewed_user)
                 following = False
             else:
-                # If not following, follow
                 logged_user.following.add(viewed_user)
                 following = True
 
@@ -123,14 +141,12 @@ def follow(request):
                 "following_count": logged_user.following_count,
                 "followers_count": viewed_user.followers_count,
             }
-            return JsonResponse(response_data)
 
+            return JsonResponse(response_data)
         except (ValueError, KeyError) as error:
             return JsonResponse({'success': False, 'message': str(error)}, status=400)
-        
         except (json.JSONDecodeError):
             return JsonResponse({'success': False, 'message': 'Invalid data.'})
-
     return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=400)
 
 
@@ -145,6 +161,10 @@ def profile(request, id):
     followers = user_profile.followers.all()  
     following = user_profile.following.all()
 
+    paginator = Paginator(user_posts, 10)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
     if request.method == 'POST':
         form = EditProfile(request.POST, instance=user_profile)
         if form.is_valid():
@@ -154,7 +174,7 @@ def profile(request, id):
     return render(request, "network/profile.html", {
         'user': user_profile, 
         'form': form,
-        'posts': user_posts,
+        'posts': page_obj,
         'followers': followers,
         'following': following,
         })
@@ -166,6 +186,11 @@ def view_profile(request, id):
     if request.method == 'POST':
         viewed_profile = get_object_or_404(User, id=id)
         viewed_profile_posts = Post.objects.filter(created_by=viewed_profile).order_by('-date_created')
+
+        page_number = int(request.POST.get('page', 1))
+        paginator = Paginator(viewed_profile_posts, 5)  # Adjust number of posts per page as needed
+        page_obj = paginator.get_page(page_number)
+
         is_following = request.user in viewed_profile.followers.all()
         profile_data = {
            'id': viewed_profile.id,
@@ -180,13 +205,17 @@ def view_profile(request, id):
            'followers': len([user.username for user in viewed_profile.followers.all()]),  # Serialize followers
            'is_following': is_following, 
            'posts': [{
-               'created_by': viewed_post.created_by.username,
-               'new_post': viewed_post.new_post,
-               'date_created': viewed_post.date_created.strftime('%Y-%m-%d %H:%M:%S'),
-               'created_by_id': viewed_post.created_by.id,
-               'id': viewed_post.id,
-               'likes': viewed_post.likes,
-                } for viewed_post in viewed_profile_posts],
+               'created_by': post.created_by.username,
+               'new_post': post.new_post,
+               'date_created': post.date_created.strftime('%Y-%m-%d %H:%M:%S'),
+               'created_by_id': post.created_by.id,
+               'id': post.id,
+               'likes': post.likes,
+                } for post in page_obj.object_list],
+           'has_next': page_obj.has_next(),
+           'has_previous': page_obj.has_previous(),
+           'page_number': page_obj.number,
+           'total_pages': paginator.num_pages,
         }
         return JsonResponse({'success': True, 'profile': profile_data, 'logged_in_user_id': request.user.id})
     return JsonResponse({'success': False, 'message': 'Invalid request method.'})
@@ -197,9 +226,8 @@ def view_profile(request, id):
 def following(request):
     user = get_object_or_404(User, id=request.user.id)
     following_users = user.following.all()
-    all_posts = Post.objects.filter(created_by__in=following_users).order_by('-date_created')
 
-    return render(request, "network/index.html", {"posts": all_posts, "link": 'following'})
+    return render(request, "network/following.html", {"following": following_users})
 
 
 

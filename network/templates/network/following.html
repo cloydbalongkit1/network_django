@@ -1,0 +1,55 @@
+{% extends "network/layout.html" %}
+
+{% block body %}
+
+    <div class="p-3 border rounded bg-light">
+        <h4 class="mb-3">Followed Users: </h4>
+
+        <ul class="list-group">
+            {% for follow in following %}
+                <li class="list-group-item mb-3">
+                    <h5>{{ follow }}</h5> 
+                    <small class="p-2"><strong>Bio:</strong> {{ follow.bio }} </small>
+                    <p>
+                        <small class="p-2"><strong>Work:</strong> {{ follow.work }}</small>
+                        <small class="p-2"><strong>Location:</strong> {{ follow.location }}</small>
+                    </p>
+                </li>
+            {% endfor %}
+        </ul>
+    
+    
+        <nav aria-label="Page navigation example">
+            <ul class="pagination justify-content-center mt-3">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link">Previous</a>
+                    </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link">Next</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+
+
+
+{% endblock %}
