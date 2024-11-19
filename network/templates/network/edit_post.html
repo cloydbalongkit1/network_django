@@ -1,0 +1,12 @@
+{% extends "network/layout.html" %}
+
+{% block body %}
+    <div class="container">
+        <h3>Edit Post</h3>
+        <form id="editPostForm">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="button" id="submitEdit" class="btn btn-success">Save Changes</button>
+        </form>
+    </div>
+{% endblock %}

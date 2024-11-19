@@ -12,3 +12,18 @@ class EditProfile(forms.ModelForm):
             'location': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter your location'}),
             'work': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter your work'}),
         }
+
+
+
+class EditPost(forms.Form):
+    content = forms.CharField(
+        widget=forms.Textarea(
+            attrs={
+                'class': 'form-control', 
+                'placeholder': 'Edit your post', 
+                'rows': 5,
+                'id': 'editContent',
+            }
+        ),
+        label="Edit Post"
+    )

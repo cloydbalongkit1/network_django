@@ -10,19 +10,17 @@ from django.urls import reverse
 from django.core.paginator import Paginator
 
 from .models import User, Like, Post, Comment
-from .form import EditProfile
+from .form import EditProfile, EditPost
 
 
 
 def index(request):
     all_posts = Post.objects.all()[::-1]
-
     if request.user.is_authenticated:
         selected_posts = all_posts[:10]
     else:
         selected_posts = random.sample(list(all_posts), 8) if len(all_posts) >= 8 else all_posts
-        
-        
+         
     paginator = Paginator(selected_posts, 4)
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
@@ -43,7 +41,23 @@ def all_posts(request):
 
 @login_required
 def edit_post(request, id):
-    ...
+    post = get_object_or_404(Post, id=id, created_by=request.user)
+
+    if request.method == 'GET':
+        form = EditPost(initial={'content': post.new_post})
+        return render(request, 'network/edit_post.html', {'form': form, 'post': post})
+    
+    elif request.method == 'POST':
+        data = json.loads(request.body)
+        new_content = data.get('editPost')
+
+        if new_content:
+            post.new_post = new_content
+            post.save()
+            return JsonResponse({'status': 'success', 'message': 'Post updated successfully!'})
+
+        return JsonResponse({'status': 'error', 'message': 'Invalid data submitted.'}, status=400)
+
 
 
 @login_required
@@ -226,8 +240,41 @@ def view_profile(request, id):
 def following(request):
     user = get_object_or_404(User, id=request.user.id)
     following_users = user.following.all()
+    following_posts = Post.objects.filter(created_by__in=following_users).order_by('-date_created')
 
-    return render(request, "network/following.html", {"following": following_users})
+    paginator = Paginator(following_posts, 5)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, "network/index.html", {"page_obj": page_obj})
+
+
+
+@login_required
+def post_comments(request, post_id):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        comment_text = data.get('comment', '').strip()
+        
+        if not comment_text:
+            return JsonResponse({'status': 'error', 'message': 'Comment cannot be empty'}, status=400)
+
+        post = get_object_or_404(Post, id=post_id)
+        comment = Comment.objects.create(post=post, comment=comment_text, commented_by=request.user)
+
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Comment posted successfully!',
+            'comment': {
+                'id': comment.id,
+                'comment': comment.comment,
+                'commented_by': comment.commented_by.username,
+                'commented_date': comment.commented_date.strftime('%B %d, %Y %H:%M'),
+            }
+        })
+
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
+
 
 
 

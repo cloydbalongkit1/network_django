@@ -1,11 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
     
-    newPostButton();
     clickPost();
     likeButtonIndex();
     makePostIndex();
+    newPostButton();
     initializeLikeButtons();
-    editPost() 
+    editPost();
+    postComment();
+    collapseComments()
 
     const profileId = getProfileIdFromUrl();
     if (profileId) {
@@ -16,15 +18,50 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
+
 function editPost() {
     document.querySelectorAll('.edit_post').forEach(editButton => {
         editButton.addEventListener('click', () => {
-            console.log('edit clicked!');
-            // --------------------------------------> fetch -- request a post request to edit post from backend
-        })
-    })
-    
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            const editId = editButton.getAttribute('data-edit-id');
+
+            fetch(`/edit/posts/${editId}`, {
+                method: 'GET',
+                headers: {
+                    'X-CSRFToken': csrfToken
+                }
+            })
+            .then(response => response.text())
+            .then(data => {
+                document.body.innerHTML = data; 
+                const saveButton = document.getElementById('submitEdit');
+
+                saveButton.addEventListener('click', () => {
+                    const content = document.getElementById('editContent').value;
+
+                    fetch(`/edit/posts/${editId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': csrfToken
+                        },
+                        body: JSON.stringify({ editPost: content })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            alert('Post updated successfully!');
+                            window.location.reload();
+                        } else {
+                            alert(data.message);
+                        }
+                    });
+                });
+            });
+        });
+    });
 }
+
 
 
 
@@ -49,7 +86,9 @@ function toTitleCase(str) {
 
 
 function newPostButton() {
-    if (window.location.pathname === '/') {
+    if (window.location.pathname === '/profile') {
+        document.getElementById('new_post').style.display = 'none';
+    } else {
         const postButton = document.getElementById('new_post');
         postButton.addEventListener('click', () => {
             const postForm = document.getElementById('post_form');
@@ -57,15 +96,10 @@ function newPostButton() {
             postButton.style.display = 'none';
         });
     }
-
-    if (window.location.pathname === '/profile') {
-        document.getElementById('new_post').style.display = 'none';
-    }
 }
 
 
 
-// --------------- index ---------------
 function makePostIndex() {
     const message = document.getElementById("post_form");
     const postButton = document.getElementById("new_post");
@@ -75,7 +109,6 @@ function makePostIndex() {
 
 
 
-// Initialize static like buttons
 function initializeLikeButtons() {
     document.querySelectorAll('.like-button').forEach(button => {
         button.addEventListener('click', handleLikeClick);
@@ -177,7 +210,6 @@ function handleLikeClick(event) {
 
 
 
-// --------------- profile ---------------
 function profileInitialDisplay() {
     const editProfile = document.querySelector('.edit_profile');
     const userProfile = document.querySelector('.user_profile');
@@ -200,7 +232,6 @@ function editButtonProfile() {
 
 
 
-// Click user name functionality
 function clickPost() {
     document.querySelectorAll('.user_name').forEach(userName => {
         cursorGraphics(userName);
@@ -248,8 +279,8 @@ function clickPost() {
                     document.querySelector('.body-container').style.display = 'none';
                     document.querySelector('.body').appendChild(newPostElement);
                     
-                    initializeLikeButtons(); // Initialize like buttons on newly created content
-                    viewProfile(); // clicking h5 and rendering profile
+                    initializeLikeButtons();
+                    viewProfile();
 
                 } else { 
                     const messageDiv = document.getElementById('message');
@@ -291,10 +322,10 @@ function viewProfile(page=1) {
         const csrfTokenInput = document.querySelector('input[name="csrf_profile_view"]').value;
 
         fetch(`/view/profile/${userID}/`, {
-            method: 'POST',  // Change method to POST
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': csrfTokenInput,  // Ensure CSRF token is included
+                'X-CSRFToken': csrfTokenInput,
             }
         })
         .then(response => response.json())
@@ -302,9 +333,8 @@ function viewProfile(page=1) {
 
             if (data.success) {
                 const viewedUser = data.profile;
-                
-                // Render profile page dynamically
                 const viewProfile = document.createElement('div');
+
                 viewProfile.innerHTML = `
                     <div class="user_profile container">
                         <div class="profile-header">
@@ -379,19 +409,17 @@ function viewProfile(page=1) {
                                 `}
                             </ul>
                         </nav>
+                    </div>
+                `;
 
-                
-                    </div>`;
-
-                // Append the created profile view to the body
                 document.querySelector('.each-post').style.display = 'none';
                 document.querySelector('.body').appendChild(viewProfile);
+
                 followButton("follow-btn");
 
             } else {
                 console.error('Failed to fetch profile data:', data.message);
             }
-
         })
         .catch(error => {
             console.error('Error:', error);
@@ -408,7 +436,6 @@ function followButton(className) {
     if (button) {
         button.addEventListener('click', () => {
             const viewedUser = button.getAttribute('data-viewedUser-id');
-            // const loggedUser = button.getAttribute('data-loggedUser-id');
             const action = button.innerText === "Follow" ? "follow" : "unfollow";
 
             fetch("/follow", {
@@ -418,21 +445,18 @@ function followButton(className) {
                     'X-CSRFToken': csrfTokenInput,
                 },
                 body: JSON.stringify({ 
-                    viewed_user: viewedUser, 
-                    // logged_user: loggedUser,
+                    viewed_user: viewedUser,
                     action: action,
                 })
             })
             .then(response => response.json())
             .then(data => {
-
                 if (data.success) {
                     button.innerText = action === "follow" ? "Unfollow" : "Follow";
                     const followersCountElem = document.querySelector('.followers-count');
                     let followersCount = parseInt(followersCountElem.innerText);
                     followersCountElem.innerText = action === "follow" ? followersCount + 1 : followersCount - 1;
                 }
-
             })
             .catch(error => { console.error('Error:', error); });
         })
@@ -441,5 +465,71 @@ function followButton(className) {
 
 
 
+function postComment() {
+    document.querySelectorAll('.post_comment').forEach(button => {
+        button.addEventListener('click', () => {
+            const postId = button.getAttribute('data-post-id');
+            const textarea = document.getElementById(`commentInput${postId}`);
+            const commentText = textarea.value.trim();
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+            if (!commentText) {
+                alert('Comment cannot be empty.');
+                return;
+            }
+    
+            fetch(`/post/comments/${postId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+                body: JSON.stringify({ comment: commentText })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const commentList = document.getElementById(`commentList${postId}`);
+                    const newComment = document.createElement('li');
+                    newComment.classList.add('list-group-item', 'border', 'rounded-3', 'ps-4', 'mb-2');
+                    newComment.innerHTML = `
+                        <div class="d-flex justify-content-between">
+                            <strong>${data.comment.commented_by}</strong>
+                            <small class="text-muted">${data.comment.commented_date}</small>
+                        </div>
+                        <p class="mb-1">${data.comment.comment}</p>
+                    `;
+                    commentList.appendChild(newComment);
+                    textarea.value = '';
+
+                    const commentCountElement = document.querySelector(`.view-comments[data-post-id="${postId}"] small`);
+                    const currentCount = parseInt(commentCountElement.textContent.match(/\d+/) || 0);
+                    commentCountElement.textContent = `View Comments (${currentCount + 1})`;
+
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            });
+        });
+    });
+}
 
 
+
+function collapseComments() {
+    document.querySelectorAll('.view-comments').forEach(link => {
+        link.addEventListener('click', () => {
+            const postId = link.getAttribute('data-post-id');
+            const commentsDiv = document.getElementById(`collapseComments${postId}`);
+
+            if (commentsDiv) {
+                commentsDiv.classList.toggle('collapse');
+            }
+        });
+    });
+}    
+    
