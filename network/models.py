@@ -2,7 +2,6 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
-
 class User(AbstractUser):
     followers = models.ManyToManyField("self", symmetrical=False, related_name="following", blank=True)
     bio = models.CharField(max_length=500, null=True, blank=True)
@@ -21,7 +20,6 @@ class User(AbstractUser):
         return self.following.count()
 
 
-
 class Post(models.Model):
     new_post = models.TextField()
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_posts')
@@ -30,7 +28,6 @@ class Post(models.Model):
 
     def __str__(self):
         return f"{self.new_post[:10]}... - {self.created_by}"
-
 
 
 class Comment(models.Model):
@@ -43,7 +40,6 @@ class Comment(models.Model):
         return f"{self.comment[:50]} - {self.commented_by}"
 
 
-
 class Like(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='post_likes')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_likes')
@@ -54,5 +50,4 @@ class Like(models.Model):
     def __str__(self):
         return f"{self.user} likes {self.post}"
     
-
 

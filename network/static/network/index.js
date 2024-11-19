@@ -63,8 +63,6 @@ function editPost() {
 }
 
 
-
-
 // --------------- common function ---------------
 function getProfileIdFromUrl() { 
     const path = window.location.pathname; 

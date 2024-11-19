@@ -13,7 +13,6 @@ from .models import User, Like, Post, Comment
 from .form import EditProfile, EditPost
 
 
-
 def index(request):
     all_posts = Post.objects.all()[::-1]
     if request.user.is_authenticated:
@@ -59,7 +58,6 @@ def edit_post(request, id):
         return JsonResponse({'status': 'error', 'message': 'Invalid data submitted.'}, status=400)
 
 
-
 @login_required
 def post(request):
     if request.method == "POST":
@@ -76,8 +74,6 @@ def post(request):
     return redirect('index')
 
 
-
-# use javascript ---- OK
 @login_required
 def view_post(request, id):
     if request.method == "POST":
@@ -103,30 +99,35 @@ def view_post(request, id):
     return JsonResponse({'success': False, 'message': 'Invalid request method.'})
 
 
-
 @login_required
 def liked(request):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
             post_id = data.get('post_id')
-            if post_id:
-                post = get_object_or_404(Post, id=post_id)
-                if post.created_by != request.user:
-                    already_liked = Like.objects.filter(post=post, user=request.user).exists()
-                    if not already_liked:
-                        Like.objects.create(post=post, user=request.user)
-                        post.likes += 1
-                        post.save()
-                        return JsonResponse({'success': True, 'likes': post.likes})
-                    else:
-                        return JsonResponse({'success': False, 'message': 'You have already liked this post.'})
-                else:
-                    return JsonResponse({'success': False, 'message': 'You cannot like your own post.'})
-        except (json.JSONDecodeError, KeyError):
-            return JsonResponse({'success': False, 'message': 'Invalid data.'})
-    return JsonResponse({'success': False, 'message': 'Invalid request method.'})
 
+            if not post_id:
+                return JsonResponse({'success': False, 'message': 'Post ID is required.'}, status=400)
+
+            post = get_object_or_404(Post, id=post_id)
+
+            if post.created_by == request.user:
+                return JsonResponse({'success': False, 'message': 'You cannot like your own post.'}, status=403)
+
+            already_liked = Like.objects.filter(post=post, user=request.user).exists()
+            if already_liked:
+                return JsonResponse({'success': False, 'message': 'You have already liked this post.'}, status=400)
+
+            Like.objects.create(post=post, user=request.user)
+            post.likes += 1
+            post.save()
+
+            return JsonResponse({'success': True, 'likes': post.likes}, status=200)
+        
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'message': 'Invalid JSON data.'}, status=400)
+
+    return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=405)
 
 
 @login_required
@@ -164,8 +165,6 @@ def follow(request):
     return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=400)
 
 
-
-
 @login_required
 def profile(request, id):
     user_profile = get_object_or_404(User, id=id)
@@ -192,7 +191,6 @@ def profile(request, id):
         'followers': followers,
         'following': following,
         })
-
 
 
 @login_required
@@ -235,7 +233,6 @@ def view_profile(request, id):
     return JsonResponse({'success': False, 'message': 'Invalid request method.'})
 
 
-
 @login_required
 def following(request):
     user = get_object_or_404(User, id=request.user.id)
@@ -247,7 +244,6 @@ def following(request):
     page_obj = paginator.get_page(page_number)
 
     return render(request, "network/index.html", {"page_obj": page_obj})
-
 
 
 @login_required
@@ -274,8 +270,6 @@ def post_comments(request, post_id):
         })
 
     return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
-
-
 
 
 def login_view(request):
@@ -328,3 +322,4 @@ def register(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "network/register.html")
+
